@@ -69,7 +69,8 @@ get_binary_name() {
 
 get_whalebrew_image() {
   local docker_version="$(get_docker_version)"
-  echo "octoblu/octoswarm:$docker_version"
+  local latest_version="$(get_latest_version)"
+  echo "octoblu/octoswarm:$docker_version-$latest_version"
 }
 
 assert_required_config() {
@@ -77,6 +78,10 @@ assert_required_config() {
   if [ "$docker_version" == "null" ]; then
     fatal "Octoswarm docker version not specified, exiting."
   fi
+}
+
+get_latest_version() {
+  curl --fail --silent "https://sqrtofsaturn:$OCTOSWARM_GITHUB_API_TOKEN@api.github.com/repos/octoblu/octoswarm/releases/latest" | jq --raw-output '.tag_name'
 }
 
 main() {
@@ -100,23 +105,20 @@ main() {
   assert_cluster_json
   assert_required_config
   local binary_name="$(get_binary_name)"
-  local whalebrew_image="$(get_whalebrew_image)"
+
   if [ "$upgrade" == "true" ]; then
     echo "Uninstalling $binary_name from whalebrew"
     whalebrew uninstall "$binary_name" 2> /dev/null
   fi
+
   if [ -z "$(which "$binary_name" 2> /dev/null)" ]; then
+    local whalebrew_image="$(get_whalebrew_image)"
     echo "Installing $whalebrew_image from whalebrew"
-    docker pull "$whalebrew_image" \
-    && whalebrew install "$whalebrew_image" \
+    whalebrew install "$whalebrew_image" \
       && echo "$whalebrew_image installed" \
       || fatal "Unable to install $whalebrew_image, cowardly refusing to do anything."
   fi
-  if [ "$upgrade" == "true" ]; then
-    echo ""
-    echo "Upgrade complete!"
-    echo ""
-  fi
+
   if [ -z "$args" ]; then
     usage
     exit 1
