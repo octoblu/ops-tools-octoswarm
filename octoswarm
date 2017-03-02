@@ -4,7 +4,7 @@ SCRIPT_NAME="octoswarm"
 STACK_CONFIG_PATH="$PWD/cluster.json"
 
 usage(){
-  echo "USAGE: $SCRIPT_NAME"
+  echo "USAGE: $SCRIPT_NAME <subcommand>"
   echo 'Description: swarms of octos!'
   echo ''
   echo 'Arguments:'
@@ -103,11 +103,23 @@ main() {
   local whalebrew_image="$(get_whalebrew_image)"
   if [ "$upgrade" == "true" ]; then
     echo "Uninstalling $binary_name from whalebrew"
-    whalebrew uninstall "$binary_name"
+    whalebrew uninstall "$binary_name" 2> /dev/null
   fi
-  if [ -z "$(which "$binary_name")" ]; then
+  if [ -z "$(which "$binary_name" 2> /dev/null)" ]; then
     echo "Installing $whalebrew_image from whalebrew"
-    whalebrew install "$whalebrew_image" || fatal "Unable to install $whalebrew_image, cowardly refusing to do anything."
+    docker pull "$whalebrew_image" \
+    && whalebrew install "$whalebrew_image" \
+      && echo "$whalebrew_image installed" \
+      || fatal "Unable to install $whalebrew_image, cowardly refusing to do anything."
+  fi
+  if [ "$upgrade" == "true" ]; then
+    echo ""
+    echo "Upgrade complete!"
+    echo ""
+  fi
+  if [ -z "$args" ]; then
+    usage
+    exit 1
   fi
   $binary_name $args
 }
