@@ -103,10 +103,10 @@ main() {
   local whalebrew_image="$(get_whalebrew_image)"
   if [ "$upgrade" == "true" ]; then
     echo "Uninstalling $binary_name from whalebrew"
-    whalebrew uninstall "$whalebrew_image"
+    whalebrew uninstall "$binary_name"
   fi
   if [ -z "$(which "$binary_name")" ]; then
-    echo "Installing $binary_name from whalebrew"
+    echo "Installing $whalebrew_image from whalebrew"
     whalebrew install "$whalebrew_image" || fatal "Unable to install $whalebrew_image, cowardly refusing to do anything."
   fi
   $binary_name $args
