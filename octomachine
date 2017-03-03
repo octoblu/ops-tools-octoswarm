@@ -1,2 +1,3 @@
 #!/bin/bash
-octoswarm machine "$@"
+
+octoswarm docker-machine "$@"
