@@ -1,0 +1,13 @@
+#!/bin/bash
+
+main() {
+  local machine_id="$1"
+  if [ "${machine_id::1}" == '-' ]; then
+    machine_id=""
+  else
+    shift;
+  fi
+  env OCTOSWARM_MACHINE="$machine_id" octoswarm sen "$@"
+}
+
+main "$@"

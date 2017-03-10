@@ -62,7 +62,7 @@ assert_required_config() {
   local docker_version
   docker_version="$(get_docker_version)"
   if [ "$docker_version" == "null" ]; then
-    fatal "Octoswarm docker version not specified, exiting."
+    fatal "octoswarm docker version not specified, exiting."
   fi
 }
 
