@@ -7,7 +7,7 @@ main() {
   else
     shift;
   fi
-  env OCTOSWARM_MACHINE="$machine_id" octoswarm ctop "$@"
+  env OCTOSWARM_MACHINE="$machine_id" octoswarm sen "$@"
 }
 
 main "$@"
