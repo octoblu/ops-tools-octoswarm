@@ -130,6 +130,15 @@ main() {
   local binary_name
   binary_name="$(get_binary_name)"
 
+  local whalebrew_version="0.1.0"
+  if [ "$(whalebrew version)" != "Whalebrew $whalebrew_version" ]; then
+    echo "Upgrading whalebrew..."
+    curl -L \
+      "https://github.com/bfirsh/whalebrew/releases/download/$whalebrew_version/whalebrew-$(uname -s)-$(uname -m)" \
+      -o /usr/local/bin/whalebrew && \
+      chmod +x /usr/local/bin/whalebrew
+  fi
+
   if [ "$upgrade" == "true" ]; then
     echo "Uninstalling $binary_name from whalebrew"
     whalebrew uninstall "$binary_name" 2> /dev/null
@@ -137,15 +146,16 @@ main() {
 
   if [ -z "$(which "$binary_name" 2> /dev/null)" ]; then
     local whalebrew_image
-    whalebrew_image="$(get_whalebrew_image)"
-    if [ "$?" != "0" ]; then
+    if ! whalebrew_image="$(get_whalebrew_image)"; then
       errecho "$whalebrew_image"
       exit 1
     fi
     echo "Installing $whalebrew_image from whalebrew"
-    whalebrew install "$whalebrew_image" \
-      && echo "$whalebrew_image installed" \
-      || fatal "Unable to install $whalebrew_image, cowardly refusing to do anything."
+    if whalebrew install "$whalebrew_image" --assume-yes; then
+      echo "$whalebrew_image installed"
+    else
+      fatal "Unable to install $whalebrew_image, cowardly refusing to do anything."
+    fi
   fi
 
   if [ -z "$args" ]; then
