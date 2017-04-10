@@ -3,6 +3,36 @@
 SCRIPT_NAME="octoswarm"
 STACK_CONFIG_PATH="$PWD/cluster.json"
 
+read -r -d '' DANGER << "EOF"
+DANGER! DANGER! DANGER! DANGER! DANGER!
+               uuuuuuu
+           uu$$$$$$$$$$$uu
+        uu$$$$$$$$$$$$$$$$$uu
+       u$$$$$$$$$$$$$$$$$$$$$u
+      u$$$$$$$$$$$$$$$$$$$$$$$u
+     u$$$$$$$$$$$$$$$$$$$$$$$$$u
+     u$$$$$$$$$$$$$$$$$$$$$$$$$u
+     u$$$$$$"   "$$$"   "$$$$$$u
+     "$$$$"      u$u       $$$$"
+      $$$u       u$u       u$$$
+      $$$u      u$$$u      u$$$
+       "$$$$uu$$$   $$$uu$$$$"
+        "$$$$$$$"   "$$$$$$$"
+          u$$$$$$$u$$$$$$$u
+           u$"$"$"$"$"$"$u
+uuu        $$u$ $ $ $ $u$$       uuu
+u$$$$        $$$$$u$u$u$$$       u$$$$
+$$$$$uu      "$$$$$$$$$"     uu$$$$$$
+u$$$$$$$$$$$uu    """""    uuuu$$$$$$$$$$
+$$$$"""$$$$$$$$$$uuu   uu$$$$$$$$$"""$$$"
+"""      ""$$$$$$$$$$$uu ""$"""
+         uuuu ""$$$$$$$$$$uuu
+u$$$uuu$$$$$$$$$uu ""$$$$$$$$$$$uuu$$$
+$$$$$$$$$$""""           ""$$$$$$$$$$$"
+ "$$$$$"                      ""$$$$""
+   $$$"                         $$$$"
+EOF
+
 usage(){
   echo "USAGE: $SCRIPT_NAME <subcommand>"
   echo 'Description: swarms of octos!'
@@ -106,6 +136,45 @@ get_latest_version() {
   curl --fail --silent "https://sqrtofsaturn:$OCTOSWARM_GITHUB_API_TOKEN@api.github.com/repos/octoblu/octoswarm/releases/latest" | jq --raw-output '.tag_name'
 }
 
+require_clean_work_tree () {
+  # Update the index
+  git update-index -q --ignore-submodules --refresh
+  err=0
+
+  error=""
+  # Disallow unstaged changes in the working tree
+  if ! git diff-files --quiet --ignore-submodules --
+  then
+      error+="$DANGER"
+      error+=$'\n\nWARNING!!!! You have unstaged changes.\n'
+      error+=$(git diff-files --name-status -r --ignore-submodules --)
+      err=1
+  fi
+
+  # Disallow uncommitted changes in the index
+  if ! git diff-index --cached --quiet HEAD --ignore-submodules --
+  then
+      error+=$'\n\nWARNING!!!! Your index contains uncommitted changes.\n'
+      error+=$(git diff-index --cached --name-status -r --ignore-submodules HEAD --)
+      err=1
+  fi
+
+  if [ $err = 1 ]
+  then
+      error+=$'\n\nPlease commit or stash them.\n'
+      lulz "$error"
+  fi
+}
+
+lulz() {
+  lulcat=$(which lolcat)
+  if [ "$lulcat" == "" ]; then
+    echo "$1" >&2
+  else
+    echo "$1" | lolcat >&2
+  fi
+}
+
 main() {
   local upgrade
   case "$1" in
@@ -164,6 +233,7 @@ main() {
     exit 1
   fi
 
+  require_clean_work_tree
   $binary_name $args
 }
 
