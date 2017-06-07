@@ -234,7 +234,7 @@ main() {
   fi
 
   require_clean_work_tree
-  $binary_name $args
+  $binary_name /bin/bash -c "stty sane && $args"
 }
 
 main "$@"
